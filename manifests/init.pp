@@ -1,22 +1,23 @@
-class vem::compute(
+class n1k-vem::compute(
     $vemimage,
     $vsmip,
     $domainid,
     $ctrlmac,
     $hostmgmtint,
     $uplinkint,
+    $profile,
     $uvembrname = "n1kvdvs",
-    $conftemplate = "default",
-    $n1kconftemplate = "vem/n1kv.conf.erb" )
+    $vtepconfig,
+    $n1kconfname = "default" )
 {
 
   $b = inline_template('<%= File.basename(vemimage) %>')
   $imgfile = "/etc/n1kv/$b"
   $xx = generate("/usr/bin/sudo", "/bin/cp", "$vemimage", "/etc/puppet/files/$b")
 
-  include vem::generaten1kconf
-  include vem::deploy
+  include n1k-vem::generaten1kconf
+  include n1k-vem::deploy
   
-  Class['vem::generaten1kconf'] -> Class['vem::deploy']
+  Class['n1k-vem::generaten1kconf'] -> Class['n1k-vem::deploy']
 
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import optparse, tempfile
+import optparse, tempfile, shutil, subprocess
 
 usage = "usage: %prog [options]"
 parser = optparse.OptionParser(usage=usage)
@@ -34,8 +34,25 @@ print "profileName " + profileName
 print "bridgeName " + bridgeName
 print "vtepConfig " + vtepConfig
 
+class Command(object):
+   """Run a command and capture it's output string, error string and exit status"""
+   def __init__(self, command):
+       self.command = command
+
+   def run(self, shell=True):
+       import subprocess as sp
+       process = sp.Popen(self.command, shell = shell, stdout = sp.PIPE, stderr = sp.PIPE)
+       self.pid = process.pid
+       self.output, self.error = process.communicate()
+       self.failed = process.returncode
+       return self
+
+   @property
+   def returncode(self):
+       return self.failed
+
 def createN1kConfFile(domainId, vsmIpAddr, macAddr, hostMgmtInt, uplinkInt, profileName, bridgeName, vtepConfig,n1kConfFile ):
-    ovf_f = open(n1kConfFile, 'w')
+    ovf_f = tempfile.NamedTemporaryFile(delete=False)
 
     st = "\
 # This is a sample N1KV configurtion(n1k.conf1) file.\n\
@@ -145,11 +162,18 @@ def createN1kConfFile(domainId, vsmIpAddr, macAddr, hostMgmtInt, uplinkInt, prof
 
 
 
+    st += "\n\
+# virt <port-name> profile <profile-name> [mode static|dhcp] [address <ipaddr>]\n\
+#      [netmask <netmask ip>] [mac <00:11:22:33:44:55>]\n\
+"
     for line in vtepConfig.split(','):
         st += line.strip() + "\n"
 
     ovf_f.write(st)
     ovf_f.close()
+    cret = Command('sudo /bin/cp %s %s' % (ovf_f.name, n1kConfFile)).run()
+    cret = Command('sudo /bin/chmod 766 %s' % n1kConfFile).run()
+
     return ovf_f
 
 def main():

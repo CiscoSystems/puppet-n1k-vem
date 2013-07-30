@@ -1,10 +1,10 @@
-class vem::deploy {
+class n1k-vem::deploy {
 
   file {'/etc/default/grub':
          owner => 'root',
          group => 'root',
          mode => '666',
-         source => "puppet:///modules/vem/grub",
+         source => "puppet:///modules/n1k-vem/grub",
   }
 
   exec {"update-grub":
@@ -54,7 +54,8 @@ class vem::deploy {
         owner => 'root',
         group => 'root',
         mode => '666',
-        content => template($n1kconftemplate)
+        source => "puppet:///files/${n1kconfname}_n1k.conf",
+        require => Package['nexus100v']
   }
 
   exec {"launch_vem":
