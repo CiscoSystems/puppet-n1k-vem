@@ -1,4 +1,4 @@
-class n1k-vem::compute(
+class n1k-vem (
     $vemimage,
     $vsmip,
     $domainid,
