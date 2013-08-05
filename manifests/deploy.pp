@@ -1,28 +1,5 @@
 class n1k-vem::deploy {
 
-  file {'/etc/default/grub':
-         owner => 'root',
-         group => 'root',
-         mode => '666',
-         source => "puppet:///modules/n1k-vem/grub",
-  }
-
-  exec {"update-grub":
-       command => "/usr/sbin/update-grub",
-       require => File['/etc/default/grub']
-  }
-
-  package { 'linux-image-3.2.0-29-generic':
-          ensure => 'installed',
-          notify => Exec["/sbin/reboot"],
-          require => Exec['update-grub']
-  }
-
-  exec { "/sbin/reboot":
-          refreshonly => "true",
-          require => Package['linux-image-3.2.0-29-generic']
-  }
-
   package { "libnl1":
          ensure => installed
   }
