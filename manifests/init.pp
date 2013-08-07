@@ -6,7 +6,7 @@ class n1k-vem (
     $hostmgmtint,
     $uplinkint,
     $profile,
-    $uvembrname = "n1kvdvs",
+    $uvembrname = "br-int",
     $vtepconfig,
     $n1kconfname = "default" )
 {
