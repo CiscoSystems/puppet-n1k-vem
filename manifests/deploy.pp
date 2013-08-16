@@ -16,11 +16,11 @@ class n1k-vem::deploy {
          owner => 'root',
          group => 'root',
          mode => '666',
-         source => "puppet:///files/$b",
+         source => "puppet:///files/$imagename",
          require => File['/etc/n1kv']
   }
 
-  package {"nexus100v":
+  package {"nexus1000v":
         provider => dpkg,
         ensure => installed,
         source => $imgfile,
@@ -32,7 +32,7 @@ class n1k-vem::deploy {
         group => 'root',
         mode => '666',
         source => "puppet:///files/${n1kconfname}_n1k.conf",
-        require => Package['nexus100v']
+        require => Package['nexus1000v']
   }
 
   exec {"launch_vem":
