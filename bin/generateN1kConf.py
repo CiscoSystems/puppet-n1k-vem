@@ -7,8 +7,7 @@ parser.add_option("-d", "--domainId", help="domainId", dest="domainId")
 parser.add_option("-i", "--ipAddr", help="vsmIpAddr", dest="vsmIpAddr")
 parser.add_option("-m", "--macAddr", help="macAddr", dest="macAddr")
 parser.add_option("-e", "--hostMgmtInt", help="hostMgmtInt", dest="hostMgmtInt")
-parser.add_option("-u", "--uplinkInt", help="uplinkInt", dest="uplinkInt")
-parser.add_option("-p", "--profileName", help="profileName", dest="profileName")
+parser.add_option("-u", "--uplinkCfg", help="uplinkCfg", dest="uplinkCfg")
 parser.add_option("-b", "--bridgeName", help="bridgeName", dest="bridgeName")
 parser.add_option("-v", "--vtepConfig", help="vtepConfig", dest="vtepConfig")
 parser.add_option("-f", "--fileName", help="n1kConf fileName", dest="n1kConfFile")
@@ -19,8 +18,7 @@ domainId = options.domainId
 vsmIpAddr = options.vsmIpAddr
 macAddr = options.macAddr
 hostMgmtInt = options.hostMgmtInt
-uplinkInt = options.uplinkInt
-profileName = options.profileName
+uplinkCfg = options.uplinkCfg
 bridgeName = options.bridgeName
 vtepConfig = options.vtepConfig
 n1kConfFile = options.n1kConfFile
@@ -29,8 +27,7 @@ print "domainId " + domainId
 print "vsmIpAddr " + vsmIpAddr
 print "macAddr " + macAddr
 print "hostMgmtInt " + hostMgmtInt
-print "uplinkInt " + uplinkInt
-print "profileName " + profileName
+print "uplinkCfg " + uplinkCfg
 print "bridgeName " + bridgeName
 print "vtepConfig " + vtepConfig
 
@@ -51,7 +48,7 @@ class Command(object):
    def returncode(self):
        return self.failed
 
-def createN1kConfFile(domainId, vsmIpAddr, macAddr, hostMgmtInt, uplinkInt, profileName, bridgeName, vtepConfig,n1kConfFile ):
+def createN1kConfFile(domainId, vsmIpAddr, macAddr, hostMgmtInt, uplinkCfg, bridgeName, vtepConfig,n1kConfFile ):
     ovf_f = tempfile.NamedTemporaryFile(delete=False)
 
     st = "\
@@ -130,7 +127,9 @@ def createN1kConfFile(domainId, vsmIpAddr, macAddr, hostMgmtInt, uplinkInt, prof
 # virt <port-name> profile  <profile-name>\n\
 # TBD: For uplinks UUID also need to be specified.\n\
 "
-    st += "phys %s profile %s" % (uplinkInt,profileName)
+    upLinkCfgDict = dict((key.strip(), value.strip()) for key,value in (item.split(':') for item in upLinkCfg.split(',')))
+    for upLinkPort in upLinkCfgDict.iterkeys():
+        st += "phys %s profile %s\n" % (upLinkPort, str(upLinkCfgDict.get(upLinkPort)))
 
     st += "\n\
 # <host-uuid>\n\
@@ -177,7 +176,7 @@ def createN1kConfFile(domainId, vsmIpAddr, macAddr, hostMgmtInt, uplinkInt, prof
     return ovf_f
 
 def main():
-    ovf_f = createN1kConfFile(domainId, vsmIpAddr, macAddr, hostMgmtInt, uplinkInt, profileName, bridgeName, vtepConfig, n1kConfFile)
+    ovf_f = createN1kConfFile(domainId, vsmIpAddr, macAddr, hostMgmtInt, uplinkCfg, bridgeName, vtepConfig, n1kConfFile)
 
 
 if __name__ == "__main__":
