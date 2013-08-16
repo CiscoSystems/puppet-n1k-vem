@@ -18,7 +18,7 @@ domainId = options.domainId
 vsmIpAddr = options.vsmIpAddr
 macAddr = options.macAddr
 hostMgmtInt = options.hostMgmtInt
-uplinkCfg = options.uplinkCfg
+upLinkCfg = options.uplinkCfg
 bridgeName = options.bridgeName
 vtepConfig = options.vtepConfig
 n1kConfFile = options.n1kConfFile
@@ -27,7 +27,7 @@ print "domainId " + domainId
 print "vsmIpAddr " + vsmIpAddr
 print "macAddr " + macAddr
 print "hostMgmtInt " + hostMgmtInt
-print "uplinkCfg " + uplinkCfg
+print "upLinkCfg " + upLinkCfg
 print "bridgeName " + bridgeName
 print "vtepConfig " + vtepConfig
 
@@ -48,7 +48,7 @@ class Command(object):
    def returncode(self):
        return self.failed
 
-def createN1kConfFile(domainId, vsmIpAddr, macAddr, hostMgmtInt, uplinkCfg, bridgeName, vtepConfig,n1kConfFile ):
+def createN1kConfFile(domainId, vsmIpAddr, macAddr, hostMgmtInt, upLinkCfg, bridgeName, vtepConfig,n1kConfFile ):
     ovf_f = tempfile.NamedTemporaryFile(delete=False)
 
     st = "\
@@ -176,7 +176,7 @@ def createN1kConfFile(domainId, vsmIpAddr, macAddr, hostMgmtInt, uplinkCfg, brid
     return ovf_f
 
 def main():
-    ovf_f = createN1kConfFile(domainId, vsmIpAddr, macAddr, hostMgmtInt, uplinkCfg, bridgeName, vtepConfig, n1kConfFile)
+    ovf_f = createN1kConfFile(domainId, vsmIpAddr, macAddr, hostMgmtInt, upLinkCfg, bridgeName, vtepConfig, n1kConfFile)
 
 
 if __name__ == "__main__":
