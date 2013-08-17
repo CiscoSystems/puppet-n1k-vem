@@ -12,7 +12,7 @@ class n1k-vem (
 {
 
   $imagename = inline_template('<%= File.basename(vemimage) %>')
-  $imgfile = "/etc/n1kv/$b"
+  $imgfile = "/etc/n1kv/$imagename"
   $xx = generate("/usr/bin/sudo", "/bin/cp", "$vemimage", "/etc/puppet/files/$imagename")
 
   include n1k-vem::generaten1kconf
