@@ -32,7 +32,7 @@ class n1k-vem::deploy {
 
   package {"nexus1000v":
     provider => dpkg,
-    ensure => installed,
+    ensure => latest,
     source => $imgfile,
     require => File[$imgfile]
   }
