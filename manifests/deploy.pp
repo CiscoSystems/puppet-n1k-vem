@@ -1,33 +1,32 @@
 class n1k-vem::deploy {
 
-  $vempackages = ["libnl1" ,"openvswitch-switch"]
-  package { "vempackages":
-    name => $vempackages,
+  package { "libnl1":
+    name => "libnl1",
     ensure => "installed"
   }
 
-  service { 'n1kv':
-    restart => '/usr/sbin/service n1kv restart'
+  package { "openvswitch-switch":
+    ensure => "installed"
   }
 
-  package { "libnl1":
-    ensure => installed
+  service { "n1kv":
+    restart => "/usr/sbin/service n1kv restart"
   }
 
-  file { '/etc/n1kv':
-    owner => 'root',
-    group => 'root',
-    mode  => '664',
+  file { "/etc/n1kv":
+    owner => "root",
+    group => "root",
+    mode  => "664",
     ensure => directory,
-    require => Package[$vempackages],
+    require => Package["libnl1"],
   }
 
   file { $imgfile:
-    owner => 'root',
-    group => 'root',
-    mode => '666',
+    owner => "root",
+    group => "root",
+    mode => "666",
     source => "puppet:///files/$imagename",
-    require => File['/etc/n1kv'],
+    require => File["/etc/n1kv"],
   }
 
   package {"nexus1000v":
@@ -38,12 +37,12 @@ class n1k-vem::deploy {
   }
 
   file {"/etc/n1kv/n1kv.conf":
-    owner => 'root',
-    group => 'root',
-    mode => '666',
+    owner => "root",
+    group => "root",
+    mode => "666",
     source => "puppet:///files/${n1kconfname}_n1k.conf",
-    require => Package['nexus1000v'],
-    notify => Service['n1kv']
+    require => Package["nexus1000v"],
+    notify => Service["n1kv"]
   }
 
   exec {"launch_vem":
@@ -51,6 +50,6 @@ class n1k-vem::deploy {
     unless => "/sbin/vemcmd show card"
   }
 
-  Package[libnl1] -> File['/etc/n1kv'] -> File[$imgfile] -> Package["nexus1000v"] -> File['/etc/n1kv/n1kv.conf'] -> Exec['launch_vem']
+  File["/etc/n1kv"] -> File[$imgfile] -> Package["nexus1000v"] -> File["/etc/n1kv/n1kv.conf"] -> Exec["launch_vem"]
 
 }
