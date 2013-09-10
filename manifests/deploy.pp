@@ -5,8 +5,10 @@ class n1k-vem::deploy {
     ensure => "installed"
   }
 
-  package { "openvswitch-switch":
-    ensure => "installed"
+  if $enable_ovs_agent {
+    package { "openvswitch-switch":
+      ensure => "installed"
+    }
   }
 
   service { "n1kv":
