@@ -5,10 +5,8 @@ class n1k-vem::deploy {
     ensure => "installed"
   }
 
-  if defined ("openvswitch-switch") {
-    package { "openvswitch-switch":
-      ensure => "installed"
-    }
+  package { "openvswitch-switch":
+    ensure => "installed"
   }
 
   service { "n1kv":
