@@ -5,7 +5,6 @@ class n1k-vem (
     $ctrlmac,
     $hostmgmtint,
     $uplinkint,
-    $profile,
     $uvembrname = "br-int",
     $vtepconfig,
     $n1kconfname = "default" )
@@ -14,6 +13,9 @@ class n1k-vem (
   $imagename = inline_template('<%= File.basename(vemimage) %>')
   $imgfile = "/etc/n1kv/$imagename"
   $xx = generate("/usr/bin/sudo", "/bin/cp", "$vemimage", "/etc/puppet/files/$imagename")
+
+  $n1kuplinkintfile = "${n1kconfname}_n1k.conf_uplink"
+  $n1kuplink_location = "/etc/n1kv/$n1kuplinkintfile"
 
   include n1k-vem::generaten1kconf
   include n1k-vem::deploy
