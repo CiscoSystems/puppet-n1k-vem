@@ -45,11 +45,23 @@ class n1k-vem::deploy {
     notify => Service["n1kv"]
   }
 
+  file { $n1kuplink_location:
+    owner => "root",
+    group => "root",
+    mode => "666",
+    source => "puppet:///files/$n1kuplinkintfile",
+    require => File["/etc/n1kv"],
+  }
+
+  exec {"bring_uplink":
+    command => "/bin/sh $n1kuplink_location"
+  }
+
   exec {"launch_vem":
     command => "/usr/sbin/service n1kv start",
     unless => "/sbin/vemcmd show card"
   }
 
-  File["/etc/n1kv"] -> File[$imgfile] -> Package["nexus1000v"] -> File["/etc/n1kv/n1kv.conf"] -> Exec["launch_vem"]
+  File["/etc/n1kv"] -> File[$imgfile] -> Package["nexus1000v"] -> File["/etc/n1kv/n1kv.conf"] -> File[$n1kuplink_location] -> Exec["bring_uplink"] -> Exec["launch_vem"]
 
 }
