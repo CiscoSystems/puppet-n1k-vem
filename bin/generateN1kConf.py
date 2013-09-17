@@ -50,7 +50,9 @@ class Command(object):
 
 def createN1kConfFile(domainId, vsmIpAddr, macAddr, hostMgmtInt, upLinkCfg, bridgeName, vtepConfig,n1kConfFile ):
     ovf_f = tempfile.NamedTemporaryFile(delete=False)
+    ovf_int = tempfile.NamedTemporaryFile(delete=False)
 
+    st_int = ""
     st = "\
 # This is a sample N1KV configurtion(n1k.conf1) file.\n\
 # <n1kv.conf> file contains all the configuration parameters for UVEM operation.\n\
@@ -130,6 +132,8 @@ def createN1kConfFile(domainId, vsmIpAddr, macAddr, hostMgmtInt, upLinkCfg, brid
     upLinkCfgDict = dict((key.strip(), value.strip()) for key,value in (item.split(':') for item in upLinkCfg.split(',')))
     for upLinkPort in upLinkCfgDict.iterkeys():
         st += "phys %s profile %s\n" % (upLinkPort, str(upLinkCfgDict.get(upLinkPort)))
+        st_int += "ifconfig %s up\n" % upLinkPort
+
 
     st += "\n\
 # <host-uuid>\n\
@@ -172,6 +176,11 @@ def createN1kConfFile(domainId, vsmIpAddr, macAddr, hostMgmtInt, upLinkCfg, brid
     ovf_f.close()
     cret = Command('sudo /bin/cp %s %s' % (ovf_f.name, n1kConfFile)).run()
     cret = Command('sudo /bin/chmod 766 %s' % n1kConfFile).run()
+
+    ovf_int.write(st_int)
+    ovf_int.close()
+    cret_int = Command('sudo /bin/cp %s %s_uplink' % (ovf_int.name,n1kConfFile)).run()
+    cret_int = Command('sudo /bin/chmod 766 %s_uplink' % n1kConfFile).run()
 
     return ovf_f
 
