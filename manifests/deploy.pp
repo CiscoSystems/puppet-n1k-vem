@@ -5,8 +5,21 @@ class n1k-vem::deploy {
     ensure => "installed"
   }
 
-  package { "openvswitch-switch":
+  package {"build-essential":
     ensure => "installed"
+  }
+
+  $kernelheaders_pkg = "linux-headers-$::kernelrelease"
+  if ! defined(Package[$kernelheaders_pkg]) {
+    package {"$kernelheaders_pkg":
+      ensure => "installed"
+    }
+  }
+
+  if ! defined(Package["openvswitch-switch"]) {
+    package { "openvswitch-switch":
+      ensure => "installed"
+    }
   }
 
   service { "n1kv":
@@ -62,6 +75,5 @@ class n1k-vem::deploy {
     unless => "/sbin/vemcmd show card"
   }
 
-  File["/etc/n1kv"] -> File[$imgfile] -> Package["nexus1000v"] -> File["/etc/n1kv/n1kv.conf"] -> File[$n1kuplink_location] -> Exec["bring_uplink"] -> Exec["launch_vem"]
-
+  Package["libnl1"] -> Package["build-essential"] -> Package[$kernelheaders_pkg] -> Package["openvswitch-switch"] -> File["/etc/n1kv"] -> File[$imgfile] -> Package["nexus1000v"] -> File["/etc/n1kv/n1kv.conf"] -> File[$n1kuplink_location] -> Exec["bring_uplink"] -> Exec["launch_vem"]
 }
