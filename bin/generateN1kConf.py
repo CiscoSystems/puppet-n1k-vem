@@ -176,6 +176,7 @@ def createN1kConfFile(domainId, vsmIpAddr, macAddr, hostMgmtInt, upLinkCfg, brid
     cret = Command('sudo /bin/cp %s %s' % (ovf_f.name, n1kConfFile)).run()
     cret = Command('sudo /bin/chmod 766 %s' % n1kConfFile).run()
 
+    st_int += "exit 0\n"
     ovf_int.write(st_int)
     ovf_int.close()
     cret_int = Command('sudo /bin/cp %s %s_uplink' % (ovf_int.name,n1kConfFile)).run()
