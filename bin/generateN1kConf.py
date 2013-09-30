@@ -5,7 +5,6 @@ usage = "usage: %prog [options]"
 parser = optparse.OptionParser(usage=usage)
 parser.add_option("-d", "--domainId", help="domainId", dest="domainId")
 parser.add_option("-i", "--ipAddr", help="vsmIpAddr", dest="vsmIpAddr")
-parser.add_option("-m", "--macAddr", help="macAddr", dest="macAddr")
 parser.add_option("-e", "--hostMgmtInt", help="hostMgmtInt", dest="hostMgmtInt")
 parser.add_option("-u", "--uplinkCfg", help="uplinkCfg", dest="uplinkCfg")
 parser.add_option("-b", "--bridgeName", help="bridgeName", dest="bridgeName")
@@ -16,7 +15,6 @@ parser.add_option("-f", "--fileName", help="n1kConf fileName", dest="n1kConfFile
 
 domainId = options.domainId
 vsmIpAddr = options.vsmIpAddr
-macAddr = options.macAddr
 hostMgmtInt = options.hostMgmtInt
 upLinkCfg = options.uplinkCfg
 bridgeName = options.bridgeName
@@ -25,7 +23,6 @@ n1kConfFile = options.n1kConfFile
 
 print "domainId " + domainId
 print "vsmIpAddr " + vsmIpAddr
-print "macAddr " + macAddr
 print "hostMgmtInt " + hostMgmtInt
 print "upLinkCfg " + upLinkCfg
 print "bridgeName " + bridgeName
@@ -48,7 +45,7 @@ class Command(object):
    def returncode(self):
        return self.failed
 
-def createN1kConfFile(domainId, vsmIpAddr, macAddr, hostMgmtInt, upLinkCfg, bridgeName, vtepConfig,n1kConfFile ):
+def createN1kConfFile(domainId, vsmIpAddr, hostMgmtInt, upLinkCfg, bridgeName, vtepConfig,n1kConfFile ):
     ovf_f = tempfile.NamedTemporaryFile(delete=False)
     ovf_int = tempfile.NamedTemporaryFile(delete=False)
 
@@ -85,12 +82,6 @@ def createN1kConfFile(domainId, vsmIpAddr, macAddr, hostMgmtInt, upLinkCfg, brid
     st += "l3control-ipaddr %s\n" % (vsmIpAddr)
 
     st += "\n\
-# TAG: system-primary-mac\n\
-# Description: MAC address of VSM's Control I/F\n\
-# Optional: No\n\
-# Default: n/a\n\
-"
-    st += "system-primary-mac %s\n" % (macAddr)
 
     st += "\n\
 # TAG: host-mgmt-intf\n\
@@ -185,7 +176,7 @@ def createN1kConfFile(domainId, vsmIpAddr, macAddr, hostMgmtInt, upLinkCfg, brid
     return ovf_f
 
 def main():
-    ovf_f = createN1kConfFile(domainId, vsmIpAddr, macAddr, hostMgmtInt, upLinkCfg, bridgeName, vtepConfig, n1kConfFile)
+    ovf_f = createN1kConfFile(domainId, vsmIpAddr, hostMgmtInt, upLinkCfg, bridgeName, vtepConfig, n1kConfFile)
 
 
 if __name__ == "__main__":

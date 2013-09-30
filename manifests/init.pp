@@ -2,7 +2,6 @@ class n1k-vem (
     $vemimage,
     $vsmip,
     $domainid,
-    $ctrlmac,
     $hostmgmtint,
     $uplinkint,
     $uvembrname = "br-int",
