@@ -82,8 +82,6 @@ def createN1kConfFile(domainId, vsmIpAddr, hostMgmtInt, upLinkCfg, bridgeName, v
     st += "l3control-ipaddr %s\n" % (vsmIpAddr)
 
     st += "\n\
-
-    st += "\n\
 # TAG: host-mgmt-intf\n\
 # Description: Management interface of the Host\n\
 # Optional: No (Even if not on N1KV, we need this\n\
