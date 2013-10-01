@@ -8,7 +8,7 @@ parser.add_option("-i", "--ipAddr", help="vsmIpAddr", dest="vsmIpAddr")
 parser.add_option("-e", "--hostMgmtInt", help="hostMgmtInt", dest="hostMgmtInt")
 parser.add_option("-u", "--uplinkCfg", help="uplinkCfg", dest="uplinkCfg")
 parser.add_option("-b", "--bridgeName", help="bridgeName", dest="bridgeName")
-parser.add_option("-v", "--vtepConfig", help="vtepConfig", dest="vtepConfig")
+parser.add_option("-v", "--vtepConfig", help="vtepConfig", default="no", dest="vtepConfig")
 parser.add_option("-f", "--fileName", help="n1kConf fileName", dest="n1kConfFile")
 
 (options, args) = parser.parse_args()
@@ -159,6 +159,8 @@ def createN1kConfFile(domainId, vsmIpAddr, hostMgmtInt, upLinkCfg, bridgeName, v
 #      [netmask <netmask ip>] [mac <00:11:22:33:44:55>]\n\
 "
     for line in vtepConfig.split(','):
+        if line.lower() == "no":
+            break
         st += line.strip() + "\n"
 
     ovf_f.write(st)
