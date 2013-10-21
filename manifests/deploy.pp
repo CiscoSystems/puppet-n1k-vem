@@ -77,10 +77,12 @@ class n1k-vem::deploy {
 
   if $isMultipleVtepInSameSubnet == 'true' {
     $my_sysctl_settings = {
-      "net.ipv4.conf.default.rp_filter" => { value => 0 },
-      "net.ipv4.conf.all.rp_filter" => { value => 0 },
+      "net.ipv4.conf.default.rp_filter" => { value => 2 },
+      "net.ipv4.conf.all.rp_filter" => { value => 2 },
       "net.ipv4.conf.default.arp_ignore" => { value => 1 },
       "net.ipv4.conf.all.arp_ignore" => { value => 1 },
+      "net.ipv4.conf.all.arp_announce" => { value => 2 },
+      "net.ipv4.conf.default.arp_announce" => { value => 2 },
     }
 
     create_resources(sysctl::value,$my_sysctl_settings)
