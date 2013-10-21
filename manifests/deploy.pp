@@ -75,5 +75,16 @@ class n1k-vem::deploy {
     unless => "/sbin/vemcmd show card"
   }
 
+  if $isMultipleVtepInSameSubnet == 'true' {
+    $my_sysctl_settings = {
+      "net.ipv4.conf.default.rp_filter" => { value => 0 },
+      "net.ipv4.conf.all.rp_filter" => { value => 0 },
+      "net.ipv4.conf.default.arp_ignore" => { value => 1 },
+      "net.ipv4.conf.all.arp_ignore" => { value => 1 },
+    }
+
+    create_resources(sysctl::value,$my_sysctl_settings)
+  }
+
   Package["libnl1"] -> Package["build-essential"] -> Package[$kernelheaders_pkg] -> Package["openvswitch-switch"] -> File["/etc/n1kv"] -> File[$imgfile] -> Package["nexus1000v"] -> File["/etc/n1kv/n1kv.conf"] -> File[$n1kuplink_location] -> Exec["bring_uplink"] -> Exec["launch_vem"]
 }

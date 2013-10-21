@@ -6,6 +6,7 @@ class n1k-vem (
     $uplinkint,
     $uvembrname = "br-int",
     $vtepconfig = "no",
+    $isMultipleVtepInSameSubnet = "false", 
     $n1kconfname = "default" )
 {
 
