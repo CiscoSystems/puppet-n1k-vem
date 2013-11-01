@@ -1,5 +1,11 @@
 class n1k-vem::deploy {
 
+  file {"/dev/kvm":
+    owner => "root",
+    group => "kvm",
+    mode => "666",
+  }
+
   package { "libnl1":
     name => "libnl1",
     ensure => "installed"
@@ -32,6 +38,17 @@ class n1k-vem::deploy {
     mode  => "664",
     ensure => directory,
     require => Package["libnl1"],
+  }
+
+  file {"/etc/n1kv/modifyGroupOfDevKvm.py":
+    owner => "root",
+    group => "root",
+    mode => "776",
+    source => "puppet:///n1k-vem/modifyGroupOfDevKvm.py",
+  }
+
+  exec {"modifyGroupOfDevKvm.py":
+    command => "/etc/n1kv/modifyGroupOfDevKvm.py"
   }
 
   file { $imgfile:
@@ -88,5 +105,5 @@ class n1k-vem::deploy {
     create_resources(sysctl::value,$my_sysctl_settings)
   }
 
-  Package["libnl1"] -> Package["build-essential"] -> Package[$kernelheaders_pkg] -> Package["openvswitch-switch"] -> File["/etc/n1kv"] -> File[$imgfile] -> Package["nexus1000v"] -> File["/etc/n1kv/n1kv.conf"] -> File[$n1kuplink_location] -> Exec["bring_uplink"] -> Exec["launch_vem"]
+  Package["libnl1"] -> Package["build-essential"] -> Package[$kernelheaders_pkg] -> Package["openvswitch-switch"] -> File["/etc/n1kv"] -> File["/etc/n1kv/modifyGroupOfDevKvm.py"] -> Exec["modifyGroupOfDevKvm.py"] -> File[$imgfile] -> Package["nexus1000v"] -> File["/etc/n1kv/n1kv.conf"] -> File[$n1kuplink_location] -> Exec["bring_uplink"] -> Exec["launch_vem"]
 }
