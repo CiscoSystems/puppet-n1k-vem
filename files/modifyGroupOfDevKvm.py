@@ -2,7 +2,7 @@
 import grp, pwd, os, tempfile
 
 fname = '/dev/kvm'
-if os.path.isfile(fname) == True:
+if os.path.exists(fname) == True:
   log_file = tempfile.NamedTemporaryFile(delete=False)
   stat_info = os.stat(fname)
   uid = stat_info.st_uid
