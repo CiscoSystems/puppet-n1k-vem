@@ -7,7 +7,8 @@ class n1k-vem (
     $uvembrname = "br-int",
     $vtepconfig = "no",
     $isMultipleVtepInSameSubnet = "false", 
-    $n1kconfname = "default" )
+    $n1kconfname = "default",
+    $node_type = "compute", )
 {
 
   $imagename = inline_template('<%= File.basename(vemimage) %>')

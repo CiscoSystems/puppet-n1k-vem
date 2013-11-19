@@ -10,6 +10,7 @@ parser.add_option("-u", "--uplinkCfg", help="uplinkCfg", dest="uplinkCfg")
 parser.add_option("-b", "--bridgeName", help="bridgeName", dest="bridgeName")
 parser.add_option("-v", "--vtepConfig", help="vtepConfig", default="no", dest="vtepConfig")
 parser.add_option("-f", "--fileName", help="n1kConf fileName", dest="n1kConfFile")
+parser.add_option("-t", "--nodeType", help="Node type", dest="nodeType")
 
 (options, args) = parser.parse_args()
 
@@ -20,6 +21,7 @@ upLinkCfg = options.uplinkCfg
 bridgeName = options.bridgeName
 vtepConfig = options.vtepConfig
 n1kConfFile = options.n1kConfFile
+nodeType = options.nodeType
 
 print "domainId " + domainId
 print "vsmIpAddr " + vsmIpAddr
@@ -45,7 +47,7 @@ class Command(object):
    def returncode(self):
        return self.failed
 
-def createN1kConfFile(domainId, vsmIpAddr, hostMgmtInt, upLinkCfg, bridgeName, vtepConfig,n1kConfFile ):
+def createN1kConfFile(domainId, vsmIpAddr, hostMgmtInt, upLinkCfg, bridgeName, vtepConfig, n1kConfFile, nodeType):
     ovf_f = tempfile.NamedTemporaryFile(delete=False)
     ovf_int = tempfile.NamedTemporaryFile(delete=False)
 
@@ -152,7 +154,13 @@ def createN1kConfFile(domainId, vsmIpAddr, hostMgmtInt, upLinkCfg, bridgeName, v
 "
     st += "uvem-ovs-brname %s\n" % (bridgeName)
 
-
+    st += "\n\
+# node-type <network/compute>\n\
+# Description: Function of this node in Cisco Openstack network.\n\
+# Optional: YES.\n\
+# Default: compute\n\
+"
+    st += "node-type %s\n" % (nodeType)
 
     st += "\n\
 # virt <port-name> profile <profile-name> [mode static|dhcp] [address <ipaddr>]\n\
@@ -177,7 +185,7 @@ def createN1kConfFile(domainId, vsmIpAddr, hostMgmtInt, upLinkCfg, bridgeName, v
     return ovf_f
 
 def main():
-    ovf_f = createN1kConfFile(domainId, vsmIpAddr, hostMgmtInt, upLinkCfg, bridgeName, vtepConfig, n1kConfFile)
+    ovf_f = createN1kConfFile(domainId, vsmIpAddr, hostMgmtInt, upLinkCfg, bridgeName, vtepConfig, n1kConfFile, nodeType)
 
 
 if __name__ == "__main__":
