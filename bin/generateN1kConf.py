@@ -173,14 +173,21 @@ def createN1kConfFile(domainId, vsmIpAddr, hostMgmtInt, upLinkCfg, bridgeName, v
 
     ovf_f.write(st)
     ovf_f.close()
-    cret = Command('sudo /bin/cp %s %s' % (ovf_f.name, n1kConfFile)).run()
-    cret = Command('sudo /bin/chmod 766 %s' % n1kConfFile).run()
+    #KK cret = Command('sudo /bin/cp %s %s' % (ovf_f.name, n1kConfFile)).run()
+    #KK cret = Command('sudo /bin/chmod 766 %s' % n1kConfFile).run()
+    cret = Command('/bin/cp %s %s' % (ovf_f.name, n1kConfFile)).run()
+    cret = Command('/bin/chmod 766 %s' % n1kConfFile).run()
+    f = open('/tmp/tmp.txt','a')
+    f.write(ovf_f.name)
+    f.write(n1kConfFile)
 
     st_int += "exit 0\n"
     ovf_int.write(st_int)
     ovf_int.close()
-    cret_int = Command('sudo /bin/cp %s %s_uplink' % (ovf_int.name,n1kConfFile)).run()
-    cret_int = Command('sudo /bin/chmod 766 %s_uplink' % n1kConfFile).run()
+    #KK cret_int = Command('sudo /bin/cp %s %s_uplink' % (ovf_int.name,n1kConfFile)).run()
+    #KK cret_int = Command('sudo /bin/chmod 766 %s_uplink' % n1kConfFile).run()
+    cret_int = Command('/bin/cp %s %s_uplink' % (ovf_int.name,n1kConfFile)).run()
+    cret_int = Command('/bin/chmod 766 %s_uplink' % n1kConfFile).run()
 
     return ovf_f
 
