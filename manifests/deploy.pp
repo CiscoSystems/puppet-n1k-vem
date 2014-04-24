@@ -8,7 +8,7 @@ class n1k-vem::deploy inherits n1k-vem {
 
       $pkg_provider = "rpm"
       $libnl_pkg = "libnl"
-      $kernelheaders_pkg = "kernel-headers"
+      $kernelheaders_pkg = "kernel-devel-$::kernelrelease"
       $ovs_pkg = "openvswitch"
       $n1kv_pkg = "nexus_1000v_vem-6.5"  
       $puppet_file_loc = "modules/n1k-vem"
@@ -92,7 +92,7 @@ class n1k-vem::deploy inherits n1k-vem {
     package {"nexus1000v":
       provider => $pkg_provider,
       name => $n1kv_pkg,
-      ensure => latest,
+      ensure => "installed",
       source => $imgfile,
       require => File[$imgfile]
     }
@@ -103,11 +103,11 @@ class n1k-vem::deploy inherits n1k-vem {
         enabled => 1,
         gpgcheck => 1,
         gpgkey => "$vemimage/RPM-GPG-KEY"
-      #proxy => "_none_",
+        #proxy => "_none_",
     }
     package {"nexus1000v":
       name => $n1kv_pkg,
-      ensure => "installed",
+      ensure => $n1kv_pkgver,
     }
   }
 
@@ -152,7 +152,6 @@ class n1k-vem::deploy inherits n1k-vem {
 
   if $::osfamily == 'Redhat' {
     Package["libnl"] -> Package[$kernelheaders_pkg] -> Package["openvswitch"] -> File["/etc/n1kv"] -> Package["nexus1000v"] -> File["/etc/n1kv/n1kv.conf"] -> File[$n1kuplink_location] -> Exec["bring_uplink"] -> Exec["launch_vem"]
-    #Package["libnl"] -> Package[$kernelheaders_pkg] -> Package["openvswitch"] -> File["/etc/n1kv"] -> File[$imgfile] -> Package["nexus1000v"] -> File["/etc/n1kv/n1kv.conf"] -> File[$n1kuplink_location] -> Exec["bring_uplink"] -> Exec["launch_vem"]
   } elsif $::operatingsystem == 'Ubuntu' {
     Package["libnl"] -> Package["build-essential"] -> Package[$kernelheaders_pkg] -> Package["openvswitch"] -> File["/etc/n1kv"] -> File["/etc/n1kv/modifyGroupOfDevKvm.py"] -> Exec["modifyGroupOfDevKvm.py"] -> File[$imgfile] -> Package["nexus1000v"] -> File["/etc/n1kv/n1kv.conf"] -> File[$n1kuplink_location] -> Exec["bring_uplink"] -> Exec["launch_vem"]
   }

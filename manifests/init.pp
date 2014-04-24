@@ -1,26 +1,24 @@
 class n1k-vem (
-    $vsmip = "10.0.0.29",
-    $domainid = 1111,
-    $hostmgmtint = "eth1",
-    $uplinkint,
-    $extparams = {brname => 'br-int', 
-                  node_type => 'compute',
-                  vtep_config => 'no',
-                  vteps_same_subnet => 'false',
-                  vemimage  => '/tmp/vijanata.rpm'
-                  },
+    $n1kv_vsm_ip = "10.10.10.250",
+    $n1kv_vsm_domain_id = 1000,
+    $host_mgmt_intf = "eth1",
+    $uplink_profile,
+    $vtep_config = 'no',
+    $additional_params = {brname => 'br-int', 
+                          node_type => 'compute',
+                          vtep_in_same_subnet => 'false',
+                          n1kv_source  => '/tmp/vijanata.rpm',
+                          n1kv_version => 'latest',
+                          },
     )
 {
     $n1kconfname = "default"
-    $uvembrname = $extparams[brname]
-    $vtepconfig = $extparams[vtep_config]
-    $isMultipleVtepInSameSubnet = $extparams[vteps_same_subnet] 
-    $vemimage = $extparams[vemimage]
-    $node_type = $extparams[node_type]
+    $uvembrname = $additional_params[brname]
+    $isMultipleVtepInSameSubnet = $additional_params[vteps_same_subnet] 
+    $vemimage = $additional_params[n1kv_source]
+    $node_type = $additional_params[node_type]
+    $n1kv_pkgver = $additional_params[n1kv_version]
 
-#  notice ( $extparams[node_type] )
-#  notify {"888 $node1_type":}
-#  $vemimage1 = "http://10.193.199.136/pub/hostedrepo"
     if $vemimage != "" {
       if inline_template("<%= vemimage.include?('ftp') %>") == "true" {
         notice ( "Image includes ftp" )
@@ -42,11 +40,13 @@ class n1k-vem (
 
     if $::osfamily == 'Ubuntu' {
       $puppet_file_location = "/etc/puppet/files/"
-      $xx = generate("/usr/bin/sudo", "/bin/cp", "$vemimage", "$puppet_file_location/$imagename")
+      if $vemimage_avail == 'local' {
+        $xx = generate("/usr/bin/sudo", "/bin/cp", "$vemimage", "$puppet_file_location/$imagename")
+      }
     } elsif $::osfamily == 'Redhat' {
       $puppet_file_location = "/usr/share/openstack-foreman-installer/puppet/modules/n1k-vem/files"
       if $vemimage_avail == 'local' {
-      #  $xx = generate("/bin/cp", "$vemimage", "$puppet_file_location/$imagename")
+        $xx = generate("/bin/cp", "$vemimage", "$puppet_file_location/$imagename")
       }
     }
 
