@@ -1,13 +1,16 @@
-# This is a sample N1KV configurtion file.
-# <n1kv.conf> file contains all the configuration parameters for UVEM operation.
+# This is the N1KV VEM configuration file.
+# <n1kv.conf> file contains all the configuration parameters for VEM operation.
 # Please find below a brief explanation of these parameters and their meaning. 
 # Optional Parameters and Default Values of parameters are explicitly stated.
 # Note: 
-# a) Mandatory parameters are needed for proper UVEM operation. 
+# a)Mandatory parameters are needed for proper VEM operation. 
 #   N1KV DP/DPA should start even if these are not specified. 
 #   But there will be functional impact. For eg: in VSM connectivity
-# b)For most of the mandatory parameters, you can use 'vemcmd' configuration mode.
-#   But to be persistent, please edit this configuration file.
+# b)For any updates to parameters to take effect, you just need to execute 
+#   'vemcmd reread config'. Its the least-disruptive way for changes to 
+#   take effect. However for certain params, n1kv service need to be restarted.
+#    These parameter are stated explictly (restart_on_modify: YES).
+#
 
 #
 #<vsm-connection-params>
@@ -15,32 +18,77 @@
 # TAG: switch-domain
 # Description:
 # Optional: No
-# Default: 1
-switch-domain <%= @domainid %>
+# Default: 1000
+# restart_on_modify: No
+switch-domain <%= @n1kv_vsm_domain_id %>
 
 # TAG: l3control-ipaddr
-# Description: IP Address of VSM's Control I/F
+# Description: IP Address of VSM Mgmt I/F
 # Optional: No
-# Default: n/a
-l3control-ipaddr <%= @vsmip %>
-
-# TAG: system-primary-mac
-# Description: MAC address of VSM's Control I/F
-# Optional: No
-# Default: n/a
-system-primary-mac <%= @ctrlmac %>
+# Default: 127.0.0.1
+# restart_on_modify: No
+l3control-ipaddr <%= @n1kv_vsm_ip %>
 
 # TAG: host-mgmt-intf
 # Description: Management interface of the Host
-# Optional: No (Even if not on N1KV, we need this 
+# Optional: No (on N1KV, we need this 
 #               for Host Identification on VSM).
-# Default: n/a
-host-mgmt-intf <%= @hostmgmtint %>
+# Default: lo
+# restart_on_modify: Yes
+host-mgmt-intf <%= @host_mgmt_intf %>
 
+#<Port-Profile Mapping>
+# Description: Port-Profile mapping for all VEM managed Interfaces.
+# Optional: Yes
+# restart_on_modify: No
+#
+# Note: Do not specify Host Management Interface here.
+# We do yet support System Ports (Ports which need to be up all time: Post Reboot/VEM Upgrade).
+#
+# Format for physical ports: 
+# phys <port-name> profile  <profile-name>
+#phys eth1 profile sys-uplink
+#phys eth2 profile uplink2
+
+<% if !@uplink_profile.empty? -%>
+<% @uplink_profile.split(/, *\n*/).each do|uplink_ent| -%>
+<% entargs = uplink_ent.split(':', 2) -%>
+phys <%=entargs[0]%> profile <%=entargs[1]%>
+<% end -%>
+<% end -%>
+
+# Format for non-vm virt ports. For instance: VTEP ports. 
+# virt <port-name> profile <profile-name> [mode static|dhcp] [address <ipaddr>]
+#      [netmask <netmask ip>] [mac <macaddr>]
+# [] -->indicates optional parameters.
+#Eg:
+#virt vmknic-int1 profile profint mode dhcp mac 00:11:22:33:44:55
+#virt vmknic-int2 profile profint mode static address 192.168.2.91 netmask 255.255.255.0 mac 00:22:22:33:44:55
+#virt vmknic-int3 profile profint
+
+<% if !@vtep_config.nil? -%>
+<% @vtep_config.split(/, *\n*/).each do|virt_ent| -%>
+<%=virt_ent%>
+<% end -%>
+<% end -%>
+
+# TAG: uvem-ovs-brname
+# Description: Default Open VSwitch Bridge Name
+# Optional: YES.
+# Default: n1kvdvs
+# restart_on_modify: Yes
+# Format: 
+# uvem-ovs-brname n1kvdvs
+uvem-ovs-brname <%= @uvembrname %>
+
+
+# The below parameters are not commonly modified.
+#
 #
 #<system-port-profile-Info>
 # Description:  System Port Profiles. 
 # Optional: Yes (If there are no System Interfaces: Mgmt I/F etc)
+# restart_on_modify: No
 #
 #Trunk Profile Format
 #profile <name> trunk <vlan> 
@@ -51,39 +99,46 @@ host-mgmt-intf <%= @hostmgmtint %>
 #profile <name> access <vlan>
 #profile <name> mtu <mtu-size>
 
-#<Port-Profile Mapping>
-# Description: Port-Profile mapping for all UVEM managed Interfaces.
-# Optional: Uplinks: NO. System-Veth: NO.
-#         : Non-System Veth: YES. (Assume it will be populated by 'libvirt')
-#
-# Format: 
-# phys <port-name> profile  <profile-name>
-# virt <port-name> profile  <profile-name>
-# TBD: For uplinks UUID also need to be specified.
-phys <%= @uplinkint %> profile sys-uplink
+# TAG: dp-np-threads
+# Description: Number of datapath threads to process normal priority packets
+# Optional: YES
+# Default: 4
+# restart_on_modify: Yes
+# Format: dp-np-threads <1..32>
 
-# <host-uuid>
-# Description: Host UUID
-# Optional : YES. If not specified UVEM would pick host UUID using 'dmidecode'.
-# host-uuid <host-uuid>
+# TAG: dp-lp-threads
+# Description: Number of datapath threads to process low priority packets
+# Optional: YES
+# Default: 1
+# restart_on_modify: Yes
+# Format: dp-lp-threads <1..32>
 
-# <dvswitch-uuid>
-# Description: N1KV DVS UUID. Not to be confused with Open VSwitch UUID
-# Optional : YES. 
-# dvswitch-uuid <sw-uuid>
+# TAG: dp-hp-threads
+# Description: Number of datapath threads to process high priority packets
+# Optional: YES
+# Default: 1
+# restart_on_modify: Yes
+# Format: dp-hp-threads <1..32>
 
-# TBD
-# <log-path>
-# Description: Log Directory Path for DP/DPA 
-# Optional: YES.
-# Default:
-# Format: 
-# log-path:/opt/cisco/n1kv/logs
+# TAG: dp-thread-sockets
+# Description: Number of packet sockets each datapath thread creates
+# Optional: YES
+# Default: 1
+# restart_on_modify: Yes
+# Format: dp-thread-sockets <1..16>
 
-# <uvem-ovs-brname>
-#
-# Description: Default Open VSwitch Bridge Name
-# Optional: YES.
-# Default: n1kvdvs
-# Format: 
-uvem-ovs-brname <%= @uvembrname %>
+# TAG: dp-thread-socket-rbuflen
+# Description: Receive buffer length of each packet socket
+# Optional: YES
+# Default: 8 MBytes
+# restart_on_modify: Yes
+# Format: dp-thread-socket-rbuflen <0..255>
+# Note: 0 - use system default
+
+# TAG: dp-thread-socket-rrnglen
+# Description: Rx-ring length of each packet socket
+# Optional: YES
+# Default: 4096
+# restart_on_modify: Yes
+# Format: dp-thread-socket-rrnglen <0..16384>
+# Note: 0 - disables memory map I/O

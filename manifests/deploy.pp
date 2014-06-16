@@ -1,37 +1,23 @@
 class n1k-vem::deploy inherits n1k-vem {
+  $n1kv_pkg = "nexus1000v"
   case $::osfamily {
     'Redhat': {
-      $hgname = inline_template('<%= File.basename(hostgroup) %>')
-      notify {"111message from here: $hgname $::hostgroup":}
-      notify {"message from here: $imgfile $imagename $n1kconfname":}
-      notify {"message from here: $n1kuplink_location $n1kuplinkintfile":}
-
       $pkg_provider = "rpm"
       $libnl_pkg = "libnl"
-      $kernelheaders_pkg = "kernel-devel-$::kernelrelease"
       $ovs_pkg = "openvswitch"
-      $n1kv_pkg = "nexus_1000v_vem-6.5"  
-      $puppet_file_loc = "modules/n1k-vem"
+      $puppet_file_uri = "puppet:///modules/n1k-vem/$imagename"
       $cmd_service = "/sbin/service"
     }
     'Ubuntu': {
       $pkg_provider = "dpkg"
       $libnl_pkg = "libnl1"
-      $kernelheaders_pkg = "linux-headers-$::kernelrelease"
       $ovs_pkg = "openvswitch-switch"
-      $n1kv_pkg = "nexus1000v"  
-      $puppet_file_loc = "files"
+      $puppet_file_uri = "puppet:///files/$imagename"
       $cmd_service = "/usr/sbin/service"
     }
     default: {
-      fail( "${::osfamily} not yet supported by puppet-vswitch")
+      fail( "${::osfamily} not yet supported by n1k-vem")
     }
-  }
-
-  file {"/dev/kvm":
-    owner => "root",
-    group => "kvm",
-    mode => "666",
   }
 
   package { "libnl":
@@ -39,37 +25,9 @@ class n1k-vem::deploy inherits n1k-vem {
     ensure => "installed"
   }
 
-  if $::osfamily == 'Ubuntu' {
-    package {"build-essential":
-      ensure => "installed"
-    }
-    file {"/etc/n1kv/modifyGroupOfDevKvm.py":
-      owner => "root",
-      group => "root",
-      mode => "776",
-      source => "puppet:///n1k-vem/modifyGroupOfDevKvm.py",
-    }
-
-    exec {"modifyGroupOfDevKvm.py":
-      command => "/etc/n1kv/modifyGroupOfDevKvm.py"
-    }
-  }
-
-  if ! defined(Package[$kernelheaders_pkg]) {
-    package {"$kernelheaders_pkg":
-      ensure => "installed"
-    }
-  }
-
-  if ! defined(Package["openvswitch"]) {
-    package { "openvswitch":
-      name => $ovs_pkg,
-      ensure => "installed"
-    }
-  }
-
-  service { "n1kv":
-    restart => "${cmd_service} n1kv restart"
+  package { "openvswitch":
+    name => $ovs_pkg,
+    ensure => "installed"
   }
 
   file { "/etc/n1kv":
@@ -77,16 +35,14 @@ class n1k-vem::deploy inherits n1k-vem {
     group => "root",
     mode  => "664",
     ensure => directory,
-    require => Package["libnl"],
   }
 
-
-  if $vemimage_avail == 'local' {
+  if $vemimage_uri == 'local' {
     file { $imgfile:
       owner => "root",
       group => "root",
       mode => "666",
-      source => "puppet:///${puppet_file_loc}/$imagename",
+      source => $puppet_file_uri,
       require => File["/etc/n1kv"],
     }
     package {"nexus1000v":
@@ -98,12 +54,12 @@ class n1k-vem::deploy inherits n1k-vem {
     }
   } else {
     yumrepo { "cisco-foreman":
-        baseurl => $vemimage,
-        descr => "Internal repo for Foreman",
-        enabled => 1,
-        gpgcheck => 1,
-        gpgkey => "$vemimage/RPM-GPG-KEY"
-        #proxy => "_none_",
+      baseurl => $vemimage,
+      descr => "Cisco Internal repo for Foreman",
+      enabled => 1,
+      gpgcheck => 1,
+      gpgkey => "$vemimage/RPM-GPG-KEY"
+      #proxy => "_none_",
     }
     package {"nexus1000v":
       name => $n1kv_pkg,
@@ -111,25 +67,20 @@ class n1k-vem::deploy inherits n1k-vem {
     }
   }
 
+  #specify template corresponding to 'n1kv.conf' and also 
+  #the corresponding action when config file changes. 
+  service { n1kv:
+    ensure => running,
+    restart => "$cmd_service n1kv restart"
+  }
+
   file {"/etc/n1kv/n1kv.conf":
     owner => "root",
     group => "root",
     mode => "666",
-    source => "puppet:///${puppet_file_loc}/${n1kconfname}_n1k.conf",
+    content => template('n1k-vem/n1kv.conf.erb'),
     require => Package["nexus1000v"],
-    notify => Service["n1kv"]
-  }
-
-  file { $n1kuplink_location:
-    owner => "root",
-    group => "root",
-    mode => "666",
-    source => "puppet:///${puppet_file_loc}/$n1kuplinkintfile",
-    require => File["/etc/n1kv"],
-  }
-
-  exec {"bring_uplink":
-    command => "/bin/sh $n1kuplink_location"
+    notify => Service[n1kv]
   }
 
   exec {"launch_vem":
@@ -150,9 +101,5 @@ class n1k-vem::deploy inherits n1k-vem {
     create_resources(sysctl::value,$my_sysctl_settings)
   }
 
-  if $::osfamily == 'Redhat' {
-    Package["libnl"] -> Package[$kernelheaders_pkg] -> Package["openvswitch"] -> File["/etc/n1kv"] -> Package["nexus1000v"] -> File["/etc/n1kv/n1kv.conf"] -> File[$n1kuplink_location] -> Exec["bring_uplink"] -> Exec["launch_vem"]
-  } elsif $::operatingsystem == 'Ubuntu' {
-    Package["libnl"] -> Package["build-essential"] -> Package[$kernelheaders_pkg] -> Package["openvswitch"] -> File["/etc/n1kv"] -> File["/etc/n1kv/modifyGroupOfDevKvm.py"] -> Exec["modifyGroupOfDevKvm.py"] -> File[$imgfile] -> Package["nexus1000v"] -> File["/etc/n1kv/n1kv.conf"] -> File[$n1kuplink_location] -> Exec["bring_uplink"] -> Exec["launch_vem"]
-  }
+  Package["libnl"] -> Package["openvswitch"] -> File["/etc/n1kv"] -> Package["nexus1000v"] -> File["/etc/n1kv/n1kv.conf"] -> Exec["launch_vem"]
 }
