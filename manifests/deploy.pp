@@ -20,72 +20,68 @@ class n1k-vem::deploy inherits n1k-vem {
     }
   }
 
-  package { "libnl":
+  package { 'libnl':
     name => $libnl_pkg,
-    ensure => "installed"
+    ensure => 'installed'
   }
 
-  package { "openvswitch":
+  package { 'openvswitch':
     name => $ovs_pkg,
-    ensure => "installed"
+    ensure => 'installed'
   }
 
-  file { "/etc/n1kv":
-    owner => "root",
-    group => "root",
-    mode  => "664",
-    ensure => directory,
+  file { '/etc/n1kv':
+    owner => 'root',
+    group => 'root',
+    mode  => '664',
+    ensure => directory
+  }
+
+  #specify template corresponding to 'n1kv.conf'
+
+  file {'/etc/n1kv/n1kv.conf':
+    owner => 'root',
+    group => 'root',
+    mode => '666',
+    content => template('n1k-vem/n1kv.conf.erb'),
+    require => File['/etc/n1kv'],
+    ensure => present
   }
 
   if $vemimage_uri == 'local' {
     file { $imgfile:
-      owner => "root",
-      group => "root",
-      mode => "666",
+      owner => 'root',
+      group => 'root',
+      mode => '666',
       source => $puppet_file_uri,
-      require => File["/etc/n1kv"],
+      require => File['/etc/n1kv'],
     }
-    package {"nexus1000v":
+    package {'nexus1000v':
       provider => $pkg_provider,
       name => $n1kv_pkg,
-      ensure => "installed",
+      ensure => latest,
       source => $imgfile,
       require => File[$imgfile]
     }
   } else {
-    yumrepo { "cisco-foreman":
+    yumrepo { 'cisco-foreman':
       baseurl => $vemimage,
-      descr => "Cisco Internal repo for Foreman",
+      descr => 'Cisco Internal repo for Foreman',
       enabled => 1,
       gpgcheck => 1,
       gpgkey => "$vemimage/RPM-GPG-KEY"
-      #proxy => "_none_",
+      #proxy => '_none_',
     }
-    package {"nexus1000v":
+    package {'nexus1000v':
       name => $n1kv_pkg,
       ensure => $n1kv_pkgver,
     }
   }
 
-  #specify template corresponding to 'n1kv.conf' and also 
-  #the corresponding action when config file changes. 
   service { n1kv:
     ensure => running,
+    subscribe => File['/etc/n1kv/n1kv.conf'],
     restart => "$cmd_service n1kv restart"
-  }
-
-  file {"/etc/n1kv/n1kv.conf":
-    owner => "root",
-    group => "root",
-    mode => "666",
-    content => template('n1k-vem/n1kv.conf.erb'),
-    require => Package["nexus1000v"],
-    notify => Service[n1kv]
-  }
-
-  exec {"launch_vem":
-    command => "$cmd_service n1kv start",
-    unless => "/sbin/vemcmd show card"
   }
 
   if $isMultipleVtepInSameSubnet == 'true' {
@@ -97,9 +93,8 @@ class n1k-vem::deploy inherits n1k-vem {
       "net.ipv4.conf.all.arp_announce" => { value => 2 },
       "net.ipv4.conf.default.arp_announce" => { value => 2 },
     }
-
     create_resources(sysctl::value,$my_sysctl_settings)
   }
 
-  Package["libnl"] -> Package["openvswitch"] -> File["/etc/n1kv"] -> Package["nexus1000v"] -> File["/etc/n1kv/n1kv.conf"] -> Exec["launch_vem"]
+  Package['libnl'] -> Package['openvswitch'] -> File['/etc/n1kv/n1kv.conf'] -> Package['nexus1000v'] -> Service[n1kv]
 }

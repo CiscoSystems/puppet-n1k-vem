@@ -70,9 +70,9 @@ class n1k-vem (
   if $vemimage != "" {
     if inline_template("<%= vemimage.include?('ftp') %>") == "true" {
       $vemimage_uri = "ftp"
-  }elsif inline_template("<%= vemimage.include?('http') %>") == "true" {
+    }elsif inline_template("<%= vemimage.include?('http') %>") == "true" {
       $vemimage_uri = "http"
-  } else {
+    } else {
       notice ( "Image local" )
       $vemimage_uri = "local"
       $imagename = inline_template('<%= File.basename(vemimage) %>')
