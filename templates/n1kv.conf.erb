@@ -62,9 +62,10 @@ phys <%=entargs[0]%> profile <%=entargs[1]%>
 #      [netmask <netmask ip>] [mac <macaddr>]
 # [] -->indicates optional parameters.
 #Eg:
-#virt vmknic-int1 profile profint mode dhcp mac 00:11:22:33:44:55
-#virt vmknic-int2 profile profint mode static address 192.168.2.91 netmask 255.255.255.0 mac 00:22:22:33:44:55
-#virt vmknic-int3 profile profint
+#virt vtep3 profile profint mode dhcp
+#virt vtep1 profile profint mode dhcp mac 00:11:22:33:44:55
+#virt vtep2 profile profint mode static address 192.168.2.91 netmask 255.255.255.0
+#virt vtep2 profile profint mode static address 192.168.2.91 netmask 255.255.255.0 mac 00:22:22:33:44:55
 
 <% if !@vtep_config.nil? -%>
 <% @vtep_config.split(/, *\n*/).each do|virt_ent| -%>

@@ -24,8 +24,8 @@
 #              Eg:VxLAN tunnel end-points. 
 #   (format) Comma separated list of vtep interfaces 
 #            their Profile and IP config.
-# virt vtep-int2 profile profint mode static address 192.168.2.91 netmask 255.255.255.0,
-# virt vtep-int1 profile profint mode dhcp,
+# virt vtep1 profile profint mode static address 192.168.2.91 netmask 255.255.255.0,
+# virt vtep2 profile profint mode dhcp
 #   (default) empty
 #
 #  [*additional_params*]
@@ -36,7 +36,7 @@
 #     vtep_in_same_subnet => 'false',
 #     n1kv_source ==> 'n1kv-vem' rpm package repository. One of below
 #       A)yum repository that hosts 'n1kv-vem' rpm package.
-#       B)Instead VEM rpm can be downloaded locally and the file-path 
+#       B)Instead VEM rpm can be downloaded locally (puppet-server) and this file-path 
 #         can be specified here.
 #     n1kv_version ==>'latest'. Instead specific version can be specified. 
 #       Not applicable if 'n1kv_source' is a file. (Option-B above)
@@ -64,7 +64,7 @@ class n1k-vem (
   if $::osfamily == 'Ubuntu' {
     $puppet_file_location = "/etc/puppet/files/"
   } elsif $::osfamily == 'Redhat' {
-    $puppet_file_location = "/usr/share/openstack-foreman-installer/puppet/modules/n1k-vem/files"
+    $puppet_file_location = "$pwd/../files"
   }
 
   if $vemimage != "" {
